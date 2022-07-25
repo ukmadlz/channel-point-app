@@ -3,6 +3,7 @@ import useSWR from 'swr'
 import { Auth, Card, Typography, Space, Button, Icon } from '@supabase/ui'
 import { supabase } from '../lib/initSupabase'
 import { useEffect, useState } from 'react'
+import HeadComponent from '../components/head.component.mjs'
 
 const fetcher = (url, token) =>
   fetch(url, {
@@ -46,17 +47,14 @@ const Index = () => {
       return (
         <Space direction="vertical" size={8}>
           <div>
-            <img
-              src="https://app.supabase.io/img/supabase-dark.svg"
-              width="96"
-            />
             <Typography.Title level={3}>
-              Welcome to Supabase Auth
+              Welcome to Clips as Channel Point Redemptions
             </Typography.Title>
           </div>
           <Auth
+            onlyThirdPartyProviders={true}
             supabaseClient={supabase}
-            providers={['google', 'github']}
+            providers={['twitch']}
             view={authView}
             socialLayout="horizontal"
             socialButtonSize="xlarge"
@@ -81,26 +79,10 @@ const Index = () => {
             >
               Log out
             </Button>
-            {error && (
-              <Typography.Text danger>Failed to fetch user!</Typography.Text>
-            )}
-            {data && !error ? (
-              <>
-                <Typography.Text type="success">
-                  User data retrieved server-side (in API route):
-                </Typography.Text>
-
-                <Typography.Text>
-                  <pre>{JSON.stringify(data, null, 2)}</pre>
-                </Typography.Text>
-              </>
-            ) : (
-              <div>Loading...</div>
-            )}
 
             <Typography.Text>
-              <Link href="/profile">
-                <a>SSR example with getServerSideProps</a>
+              <Link href="/clips">
+                <a>Review and vote for the clips to be in the channel point redemptions</a>
               </Link>
             </Typography.Text>
           </>
@@ -110,10 +92,13 @@ const Index = () => {
   }
 
   return (
-    <div style={{ maxWidth: '420px', margin: '96px auto' }}>
+    <div>
+      <HeadComponent/>
+      <main style={{ maxWidth: '420px', margin: '96px auto' }}>
       <Card>
         <View />
       </Card>
+      </main>
     </div>
   )
 }
