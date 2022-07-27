@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Card, Typography, Space } from '@supabase/ui'
 import { supabase } from '../lib/initSupabase'
 import HeadComponent from '../components/head.component.mjs'
+import TwitchPreviewComponent from '../components/twitch-preview.component.mjs'
 
 export default function Profile({ clips }) {
   return (
@@ -14,13 +15,11 @@ export default function Profile({ clips }) {
             key={clip.id + '-selector'}
             hoverable
             title={clip.title}
-            // cover={[
-            //   <img
-            //     src={clip.thumbnail_url}
-            //   />,
-            // ]}
+            cover={[
+              <TwitchPreviewComponent id={clip.id} thumbnail_url={clip.thumbnail_url} />,
+            ]}
           >
-            <iframe src={`https://clips.twitch.tv/embed?clip=${clip.id}&parent=localhost`} frameBorder="0" allowFullScreen={true} scrolling="no" height="378" width="620"></iframe>
+            {/* <iframe src={`https://clips.twitch.tv/embed?clip=${clip.id}&parent=localhost`} frameBorder="0" allowFullScreen={true} scrolling="no" height="378" width="620"></iframe> */}
           </Card>
         )
       })}
@@ -40,6 +39,7 @@ export async function getServerSideProps({ req }) {
   const { data, error } = await supabase
     .from('clips')
     .select()
+    .order('twitch_created_at', { ascending: false })
 
   // If there is a user, return it.
   return { props: { clips: data } }
