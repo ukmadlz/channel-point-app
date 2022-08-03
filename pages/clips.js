@@ -3,6 +3,7 @@ import { Card, Typography, Space } from '@supabase/ui'
 import { supabase } from '../lib/initSupabase'
 import HeadComponent from '../components/head.component.mjs'
 import TwitchPreviewComponent from '../components/twitch-preview.component.mjs'
+import VoteComponent from '../components/vote.component.mjs'
 
 export default function Profile({ clips }) {
   return (
@@ -19,7 +20,7 @@ export default function Profile({ clips }) {
               <TwitchPreviewComponent id={clip.id} thumbnail_url={clip.thumbnail_url} />,
             ]}
           >
-            {/* <iframe src={`https://clips.twitch.tv/embed?clip=${clip.id}&parent=localhost`} frameBorder="0" allowFullScreen={true} scrolling="no" height="378" width="620"></iframe> */}
+            <VoteComponent id={clip.id}/>
           </Card>
         )
       })}

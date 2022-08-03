@@ -1,0 +1,6 @@
+[build]
+  command = "npm run build"
+  publish = "out"
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ['better-sqlite3', 'mssql', 'mysql', 'mysql2', 'oracle', 'oracledb', 'postgres', 'redshift', 'sqlite3', 'pg', 'pg-query-stream', 'tedious']

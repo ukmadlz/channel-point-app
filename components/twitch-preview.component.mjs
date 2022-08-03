@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 
-export default function TwitchPreviewComponent (props) {
+export default function TwitchPreviewComponent ({ id, thumbnail_url }) {
   const [preview, setPreview] = useState(false);
   const image = (<img
     style={{
       width: "100%",
       cursor: "pointer"
     }}
-    src={props.thumbnail_url}
+    src={thumbnail_url}
   />);
   const iframe = (<iframe
-      src={`https://clips.twitch.tv/embed?clip=${props.id}&parent=localhost`}
+      src={`https://clips.twitch.tv/embed?clip=${id}&parent=localhost`}
       frameBorder="0"
       allowFullScreen={true}
       scrolling="no"

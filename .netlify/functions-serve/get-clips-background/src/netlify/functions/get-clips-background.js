@@ -3813,11 +3813,8 @@ var init_fetch_blob = __esm({
           } else {
             part = encoder.encode(`${element}`);
           }
-          const size = ArrayBuffer.isView(part) ? part.byteLength : part.size;
-          if (size) {
-            this.#size += size;
-            this.#parts.push(part);
-          }
+          this.#size += ArrayBuffer.isView(part) ? part.byteLength : part.size;
+          this.#parts.push(part);
         }
         this.#endings = `${options.endings === void 0 ? "transparent" : options.endings}`;
         const type = options.type === void 0 ? "" : String(options.type);
@@ -4087,20 +4084,18 @@ var init_from = __esm({
         this.#start = options.start;
         this.size = options.size;
         this.lastModified = options.lastModified;
-        this.originalSize = options.originalSize === void 0 ? options.size : options.originalSize;
       }
       slice(start, end) {
         return new BlobDataItem({
           path: this.#path,
           lastModified: this.lastModified,
-          originalSize: this.originalSize,
           size: end - start,
           start: this.#start + start
         });
       }
       async *stream() {
-        const { mtimeMs, size } = await stat(this.#path);
-        if (mtimeMs > this.lastModified || this.originalSize !== size) {
+        const { mtimeMs } = await stat(this.#path);
+        if (mtimeMs > this.lastModified) {
           throw new import_node_domexception.default("The requested file could not be read, typically due to permission problems that have occurred after a reference to a file was acquired.", "NotReadableError");
         }
         yield* (0, import_node_fs.createReadStream)(this.#path, {
@@ -4474,7 +4469,7 @@ var require_version = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.version = void 0;
-    exports.version = "1.35.3";
+    exports.version = "1.35.4";
   }
 });
 
@@ -4518,7 +4513,7 @@ var require_version2 = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.version = void 0;
-    exports.version = "1.22.16";
+    exports.version = "1.22.21";
   }
 });
 
@@ -7641,6 +7636,34 @@ var require_node_ponyfill = __commonJS({
 var require_helpers2 = __commonJS({
   "node_modules/@supabase/gotrue-js/dist/main/lib/helpers.js"(exports) {
     "use strict";
+    var __createBinding = exports && exports.__createBinding || (Object.create ? function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      Object.defineProperty(o, k2, { enumerable: true, get: function() {
+        return m2[k];
+      } });
+    } : function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      o[k2] = m2[k];
+    });
+    var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    } : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports && exports.__importStar || function(mod) {
+      if (mod && mod.__esModule)
+        return mod;
+      var result = {};
+      if (mod != null) {
+        for (var k in mod)
+          if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k))
+            __createBinding(result, mod, k);
+      }
+      __setModuleDefault(result, mod);
+      return result;
+    };
     var __awaiter = exports && exports.__awaiter || function(thisArg, _arguments, P, generator) {
       function adopt(value) {
         return value instanceof P ? value : new P(function(resolve) {
@@ -7668,12 +7691,8 @@ var require_helpers2 = __commonJS({
         step((generator = generator.apply(thisArg, _arguments || [])).next());
       });
     };
-    var __importDefault = exports && exports.__importDefault || function(mod) {
-      return mod && mod.__esModule ? mod : { "default": mod };
-    };
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.removeItemAsync = exports.getItemSynchronously = exports.getItemAsync = exports.setItemAsync = exports.resolveFetch = exports.getParameterByName = exports.isBrowser = exports.uuid = exports.expiresAt = void 0;
-    var cross_fetch_1 = __importDefault(require_node_ponyfill());
     function expiresAt(expiresIn) {
       const timeNow = Math.round(Date.now() / 1e3);
       return timeNow + expiresIn;
@@ -7706,7 +7725,9 @@ var require_helpers2 = __commonJS({
       if (customFetch) {
         _fetch = customFetch;
       } else if (typeof fetch === "undefined") {
-        _fetch = cross_fetch_1.default;
+        _fetch = (...args) => __awaiter(void 0, void 0, void 0, function* () {
+          return yield (yield Promise.resolve().then(() => __importStar(require_node_ponyfill()))).fetch(...args);
+        });
       } else {
         _fetch = fetch;
       }
@@ -7825,7 +7846,7 @@ var require_GoTrueApi = __commonJS({
               email,
               password,
               data: options.data,
-              gotrue_meta_security: { hcaptcha_token: options.captchaToken }
+              gotrue_meta_security: { captcha_token: options.captchaToken }
             }, { headers });
             const session = Object.assign({}, data);
             if (session.expires_in)
@@ -7844,7 +7865,7 @@ var require_GoTrueApi = __commonJS({
             if (options.redirectTo) {
               queryString += "&redirect_to=" + encodeURIComponent(options.redirectTo);
             }
-            const data = yield (0, fetch_1.post)(this.fetch, `${this.url}/token${queryString}`, { email, password }, { headers });
+            const data = yield (0, fetch_1.post)(this.fetch, `${this.url}/token${queryString}`, { email, password, gotrue_meta_security: { captcha_token: options.captchaToken } }, { headers });
             const session = Object.assign({}, data);
             if (session.expires_in)
               session.expires_at = (0, helpers_1.expiresAt)(data.expires_in);
@@ -7862,7 +7883,7 @@ var require_GoTrueApi = __commonJS({
               phone,
               password,
               data: options.data,
-              gotrue_meta_security: { hcaptcha_token: options.captchaToken }
+              gotrue_meta_security: { captcha_token: options.captchaToken }
             }, { headers });
             const session = Object.assign({}, data);
             if (session.expires_in)
@@ -7873,12 +7894,12 @@ var require_GoTrueApi = __commonJS({
           }
         });
       }
-      signInWithPhone(phone, password) {
+      signInWithPhone(phone, password, options = {}) {
         return __awaiter(this, void 0, void 0, function* () {
           try {
             const headers = Object.assign({}, this.headers);
             const queryString = "?grant_type=password";
-            const data = yield (0, fetch_1.post)(this.fetch, `${this.url}/token${queryString}`, { phone, password }, { headers });
+            const data = yield (0, fetch_1.post)(this.fetch, `${this.url}/token${queryString}`, { phone, password, gotrue_meta_security: { captcha_token: options.captchaToken } }, { headers });
             const session = Object.assign({}, data);
             if (session.expires_in)
               session.expires_at = (0, helpers_1.expiresAt)(data.expires_in);
@@ -7916,7 +7937,7 @@ var require_GoTrueApi = __commonJS({
             const data = yield (0, fetch_1.post)(this.fetch, `${this.url}/otp${queryString}`, {
               email,
               create_user: shouldCreateUser,
-              gotrue_meta_security: { hcaptcha_token: options.captchaToken }
+              gotrue_meta_security: { captcha_token: options.captchaToken }
             }, { headers });
             return { data, error: null };
           } catch (e2) {
@@ -7933,7 +7954,7 @@ var require_GoTrueApi = __commonJS({
             const data = yield (0, fetch_1.post)(this.fetch, `${this.url}/otp`, {
               phone,
               create_user: shouldCreateUser,
-              gotrue_meta_security: { hcaptcha_token: options.captchaToken }
+              gotrue_meta_security: { captcha_token: options.captchaToken }
             }, { headers });
             return { data, error: null };
           } catch (e2) {
@@ -8002,7 +8023,7 @@ var require_GoTrueApi = __commonJS({
             if (options.redirectTo) {
               queryString += "?redirect_to=" + encodeURIComponent(options.redirectTo);
             }
-            const data = yield (0, fetch_1.post)(this.fetch, `${this.url}/recover${queryString}`, { email, gotrue_meta_security: { hcaptcha_token: options.captchaToken } }, { headers });
+            const data = yield (0, fetch_1.post)(this.fetch, `${this.url}/recover${queryString}`, { email, gotrue_meta_security: { captcha_token: options.captchaToken } }, { headers });
             return { data, error: null };
           } catch (e2) {
             return { data: null, error: e2 };
@@ -8350,7 +8371,7 @@ var require_GoTrueClient = __commonJS({
         if (settings.detectSessionInUrl && (0, helpers_1.isBrowser)() && !!(0, helpers_1.getParameterByName)("access_token")) {
           this.getSessionFromUrl({ storeSession: true }).then(({ error }) => {
             if (error) {
-              console.error("Error getting session from URL.", error);
+              throw new Error("Error getting session from URL.");
             }
           });
         }
@@ -8404,7 +8425,8 @@ var require_GoTrueClient = __commonJS({
             }
             if (email && password) {
               return this._handleEmailSignIn(email, password, {
-                redirectTo: options.redirectTo
+                redirectTo: options.redirectTo,
+                captchaToken: options.captchaToken
               });
             }
             if (phone && !password) {
@@ -8620,7 +8642,8 @@ var require_GoTrueClient = __commonJS({
         return __awaiter(this, void 0, void 0, function* () {
           try {
             const { data, error } = yield this.api.signInWithEmail(email, password, {
-              redirectTo: options.redirectTo
+              redirectTo: options.redirectTo,
+              captchaToken: options.captchaToken
             });
             if (error || !data)
               return { data: null, user: null, session: null, error };
@@ -8634,11 +8657,11 @@ var require_GoTrueClient = __commonJS({
           }
         });
       }
-      _handlePhoneSignIn(phone, password) {
+      _handlePhoneSignIn(phone, password, options = {}) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
           try {
-            const { data, error } = yield this.api.signInWithPhone(phone, password);
+            const { data, error } = yield this.api.signInWithPhone(phone, password, options);
             if (error || !data)
               return { data: null, user: null, session: null, error };
             if ((_a = data === null || data === void 0 ? void 0 : data.user) === null || _a === void 0 ? void 0 : _a.phone_confirmed_at) {
@@ -8917,6 +8940,34 @@ var require_SupabaseAuthClient = __commonJS({
 var require_types2 = __commonJS({
   "node_modules/@supabase/postgrest-js/dist/main/lib/types.js"(exports) {
     "use strict";
+    var __createBinding = exports && exports.__createBinding || (Object.create ? function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      Object.defineProperty(o, k2, { enumerable: true, get: function() {
+        return m2[k];
+      } });
+    } : function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      o[k2] = m2[k];
+    });
+    var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    } : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports && exports.__importStar || function(mod) {
+      if (mod && mod.__esModule)
+        return mod;
+      var result = {};
+      if (mod != null) {
+        for (var k in mod)
+          if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k))
+            __createBinding(result, mod, k);
+      }
+      __setModuleDefault(result, mod);
+      return result;
+    };
     var __awaiter = exports && exports.__awaiter || function(thisArg, _arguments, P, generator) {
       function adopt(value) {
         return value instanceof P ? value : new P(function(resolve) {
@@ -8944,12 +8995,8 @@ var require_types2 = __commonJS({
         step((generator = generator.apply(thisArg, _arguments || [])).next());
       });
     };
-    var __importDefault = exports && exports.__importDefault || function(mod) {
-      return mod && mod.__esModule ? mod : { "default": mod };
-    };
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.PostgrestBuilder = void 0;
-    var cross_fetch_1 = __importDefault(require_node_ponyfill());
     var PostgrestBuilder = class {
       constructor(builder) {
         Object.assign(this, builder);
@@ -8957,7 +9004,9 @@ var require_types2 = __commonJS({
         if (builder.fetch) {
           _fetch = builder.fetch;
         } else if (typeof fetch === "undefined") {
-          _fetch = cross_fetch_1.default;
+          _fetch = (...args) => __awaiter(this, void 0, void 0, function* () {
+            return yield (yield Promise.resolve().then(() => __importStar(require_node_ponyfill()))).fetch(...args);
+          });
         } else {
           _fetch = fetch;
         }
@@ -9451,7 +9500,7 @@ var require_version3 = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.version = void 0;
-    exports.version = "0.37.3";
+    exports.version = "0.37.4";
   }
 });
 
@@ -9684,9 +9733,9 @@ var require_transformers = __commonJS({
   }
 });
 
-// node_modules/ms/index.js
+// node_modules/websocket/node_modules/ms/index.js
 var require_ms = __commonJS({
-  "node_modules/ms/index.js"(exports, module2) {
+  "node_modules/websocket/node_modules/ms/index.js"(exports, module2) {
     var s2 = 1e3;
     var m2 = s2 * 60;
     var h2 = m2 * 60;
@@ -9782,9 +9831,9 @@ var require_ms = __commonJS({
   }
 });
 
-// node_modules/debug/src/debug.js
+// node_modules/websocket/node_modules/debug/src/debug.js
 var require_debug = __commonJS({
-  "node_modules/debug/src/debug.js"(exports, module2) {
+  "node_modules/websocket/node_modules/debug/src/debug.js"(exports, module2) {
     exports = module2.exports = createDebug.debug = createDebug["default"] = createDebug;
     exports.coerce = coerce;
     exports.disable = disable;
@@ -9891,9 +9940,9 @@ var require_debug = __commonJS({
   }
 });
 
-// node_modules/debug/src/browser.js
+// node_modules/websocket/node_modules/debug/src/browser.js
 var require_browser = __commonJS({
-  "node_modules/debug/src/browser.js"(exports, module2) {
+  "node_modules/websocket/node_modules/debug/src/browser.js"(exports, module2) {
     exports = module2.exports = require_debug();
     exports.log = log;
     exports.formatArgs = formatArgs;
@@ -9975,9 +10024,9 @@ var require_browser = __commonJS({
   }
 });
 
-// node_modules/debug/src/node.js
+// node_modules/websocket/node_modules/debug/src/node.js
 var require_node = __commonJS({
-  "node_modules/debug/src/node.js"(exports, module2) {
+  "node_modules/websocket/node_modules/debug/src/node.js"(exports, module2) {
     var tty = require("tty");
     var util = require("util");
     exports = module2.exports = require_debug();
@@ -10099,9 +10148,9 @@ var require_node = __commonJS({
   }
 });
 
-// node_modules/debug/src/index.js
+// node_modules/websocket/node_modules/debug/src/index.js
 var require_src = __commonJS({
-  "node_modules/debug/src/index.js"(exports, module2) {
+  "node_modules/websocket/node_modules/debug/src/index.js"(exports, module2) {
     if (typeof process !== "undefined" && process.type === "renderer") {
       module2.exports = require_browser();
     } else {
@@ -12641,7 +12690,7 @@ var require_version5 = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.version = void 0;
-    exports.version = "1.7.2";
+    exports.version = "1.7.3";
   }
 });
 
@@ -13382,9 +13431,9 @@ var require_RealtimeChannel = __commonJS({
       }
       send(payload) {
         const push = this.push(payload.type, payload);
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
           push.receive("ok", () => resolve("ok"));
-          push.receive("timeout", () => reject("timeout"));
+          push.receive("timeout", () => resolve("timeout"));
         });
       }
       replyEventName(ref) {
@@ -13999,18 +14048,71 @@ var require_fetch2 = __commonJS({
 var require_helpers3 = __commonJS({
   "node_modules/@supabase/storage-js/dist/main/lib/helpers.js"(exports) {
     "use strict";
-    var __importDefault = exports && exports.__importDefault || function(mod) {
-      return mod && mod.__esModule ? mod : { "default": mod };
+    var __createBinding = exports && exports.__createBinding || (Object.create ? function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      Object.defineProperty(o, k2, { enumerable: true, get: function() {
+        return m2[k];
+      } });
+    } : function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      o[k2] = m2[k];
+    });
+    var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    } : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports && exports.__importStar || function(mod) {
+      if (mod && mod.__esModule)
+        return mod;
+      var result = {};
+      if (mod != null) {
+        for (var k in mod)
+          if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k))
+            __createBinding(result, mod, k);
+      }
+      __setModuleDefault(result, mod);
+      return result;
+    };
+    var __awaiter = exports && exports.__awaiter || function(thisArg, _arguments, P, generator) {
+      function adopt(value) {
+        return value instanceof P ? value : new P(function(resolve) {
+          resolve(value);
+        });
+      }
+      return new (P || (P = Promise))(function(resolve, reject) {
+        function fulfilled(value) {
+          try {
+            step(generator.next(value));
+          } catch (e2) {
+            reject(e2);
+          }
+        }
+        function rejected(value) {
+          try {
+            step(generator["throw"](value));
+          } catch (e2) {
+            reject(e2);
+          }
+        }
+        function step(result) {
+          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+        }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+      });
     };
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.resolveFetch = void 0;
-    var cross_fetch_1 = __importDefault(require_node_ponyfill());
     exports.resolveFetch = (customFetch) => {
       let _fetch;
       if (customFetch) {
         _fetch = customFetch;
       } else if (typeof fetch === "undefined") {
-        _fetch = cross_fetch_1.default;
+        _fetch = (...args) => __awaiter(void 0, void 0, void 0, function* () {
+          return yield (yield Promise.resolve().then(() => __importStar(require_node_ponyfill()))).fetch(...args);
+        });
       } else {
         _fetch = fetch;
       }
@@ -14422,18 +14524,75 @@ var require_main5 = __commonJS({
 var require_helper = __commonJS({
   "node_modules/@supabase/functions-js/dist/main/helper.js"(exports) {
     "use strict";
-    var __importDefault = exports && exports.__importDefault || function(mod) {
-      return mod && mod.__esModule ? mod : { "default": mod };
+    var __createBinding = exports && exports.__createBinding || (Object.create ? function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m2, k);
+      if (!desc || ("get" in desc ? !m2.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m2[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    } : function(o, m2, k, k2) {
+      if (k2 === void 0)
+        k2 = k;
+      o[k2] = m2[k];
+    });
+    var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    } : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports && exports.__importStar || function(mod) {
+      if (mod && mod.__esModule)
+        return mod;
+      var result = {};
+      if (mod != null) {
+        for (var k in mod)
+          if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k))
+            __createBinding(result, mod, k);
+      }
+      __setModuleDefault(result, mod);
+      return result;
+    };
+    var __awaiter = exports && exports.__awaiter || function(thisArg, _arguments, P, generator) {
+      function adopt(value) {
+        return value instanceof P ? value : new P(function(resolve) {
+          resolve(value);
+        });
+      }
+      return new (P || (P = Promise))(function(resolve, reject) {
+        function fulfilled(value) {
+          try {
+            step(generator.next(value));
+          } catch (e2) {
+            reject(e2);
+          }
+        }
+        function rejected(value) {
+          try {
+            step(generator["throw"](value));
+          } catch (e2) {
+            reject(e2);
+          }
+        }
+        function step(result) {
+          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+        }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+      });
     };
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.resolveFetch = void 0;
-    var cross_fetch_1 = __importDefault(require_node_ponyfill());
     var resolveFetch = (customFetch) => {
       let _fetch;
       if (customFetch) {
         _fetch = customFetch;
       } else if (typeof fetch === "undefined") {
-        _fetch = cross_fetch_1.default;
+        _fetch = (...args) => __awaiter(void 0, void 0, void 0, function* () {
+          return yield (yield Promise.resolve().then(() => __importStar(require_node_ponyfill()))).fetch(...args);
+        });
       } else {
         _fetch = fetch;
       }
@@ -14909,6 +15068,11 @@ var isDomainOrSubdomain = (destination, original) => {
   const orig = new URL(original).hostname;
   const dest = new URL(destination).hostname;
   return orig === dest || orig.endsWith(`.${dest}`);
+};
+var isSameProtocol = (destination, original) => {
+  const orig = new URL(original).protocol;
+  const dest = new URL(destination).protocol;
+  return orig === dest;
 };
 
 // node_modules/node-fetch/src/body.js
@@ -15440,7 +15604,7 @@ function isOriginPotentiallyTrustworthy(url) {
   if (hostIPVersion === 6 && /^(((0+:){7})|(::(0+:){0,6}))0*1$/.test(hostIp)) {
     return true;
   }
-  if (/^(.+\.)*localhost$/.test(url.host)) {
+  if (url.host === "localhost" || url.host.endsWith(".localhost")) {
     return false;
   }
   if (url.protocol === "file:") {
@@ -15554,7 +15718,7 @@ var Request = class extends Body {
     if (/^(delete|get|head|options|post|put)$/i.test(method)) {
       method = method.toUpperCase();
     }
-    if ("data" in init) {
+    if (!isRequest(init) && "data" in init) {
       doBadDataWarn();
     }
     if ((init.body != null || isRequest(input) && input.body !== null) && (method === "GET" || method === "HEAD")) {
@@ -15834,7 +15998,7 @@ async function fetch2(url, options_) {
               referrer: request.referrer,
               referrerPolicy: request.referrerPolicy
             };
-            if (!isDomainOrSubdomain(request.url, locationURL)) {
+            if (!isDomainOrSubdomain(request.url, locationURL) || !isSameProtocol(request.url, locationURL)) {
               for (const name of ["authorization", "www-authenticate", "cookie", "cookie2"]) {
                 requestOptions.headers.delete(name);
               }
@@ -16014,7 +16178,7 @@ var Tau = class {
     return await this.tauFetch("GET", `clips?broadcaster_id=${this.broadcasterId}&after=${paginationCursor}`);
   }
   async getClip(clipId) {
-    return await this.tauFetch("GET", `clips/${clipId}`);
+    return await this.tauFetch("GET", `clips?id=${clipId}`);
   }
   async ListChannelPointRedemptions() {
     return await this.tauFetch("GET", `channel_points/custom_rewards?broadcaster_id=${this.broadcasterId}`);
@@ -16026,6 +16190,9 @@ var Tau = class {
       cost,
       colour
     });
+  }
+  async DeleteChannelPointRedemption(id) {
+    return await this.tauFetch("DELETE", `channel_points/custom_rewards?broadcaster_id=${this.broadcasterId}&id=${id}`);
   }
 };
 
@@ -16058,7 +16225,19 @@ async function handler(event) {
   console.debug("Attempt to upsert to PG");
   clips.forEach(async (clip) => {
     const { id, broadcaster_id, broadcaster_name, creator_id, creator_name, title, view_count, created_at, thumbnail_url, duration } = clip;
-    const { error } = await supabase.from("clips").upsert({ id, broadcaster_id, broadcaster_name, creator_id, creator_name, title, view_count, twitch_created_at: created_at, thumbnail_url, duration });
+    const { error } = await supabase.from("clips").upsert({
+      id,
+      broadcaster_id,
+      broadcaster_name,
+      creator_id,
+      creator_name,
+      title,
+      view_count,
+      twitch_created_at: created_at,
+      thumbnail_url,
+      duration,
+      updated_at: new Date()
+    });
     if (error) {
       console.error(error);
     }
