@@ -2,7 +2,7 @@
 package = "@netlify/plugin-nextjs"
 [build]
   command = "npm run build"
-  publish = "out"
+  publish = ".next"
 [functions]
   node_bundler = "esbuild"
   external_node_modules = ['better-sqlite3', 'mssql', 'mysql', 'mysql2', 'oracle', 'oracledb', 'postgres', 'redshift', 'sqlite3', 'pg', 'pg-query-stream', 'tedious']
