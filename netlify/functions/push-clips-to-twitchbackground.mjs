@@ -41,13 +41,13 @@ export async function handler (event) {
     .as('votes_down')
   // Complete query
   const clips = await knex.select('*', 
-    knex.raw('("votes_up"."vote_up"-"votes_down"."vote_down") as ??', ['sum_votes']),
-    knex.raw('("votes_up"."vote_up"+"votes_down"."vote_down") AS ??', ['total_votes_cast'])
+    knex.raw('(COALESCE("votes_up"."vote_up", 0)-COALESCE("votes_down"."vote_down",0)) as ??', ['sum_votes']),
+    knex.raw('(COALESCE("votes_up"."vote_up", 0)+COALESCE("votes_down"."vote_down", 0)) AS ??', ['total_votes_cast'])
   )
     .from('clips')
     .leftJoin(votesUpQuery, 'clips.id', 'votes_up.clip_id')
     .leftJoin(votesDownQuery, 'clips.id', 'votes_down.clip_id')
-    .where(knex.raw('("votes_up"."vote_up"-"votes_down"."vote_down") > 0'))
+    .where(knex.raw('(COALESCE("votes_up"."vote_up", 0)-COALESCE("votes_down"."vote_down", 0)) > 0'))
     .orderBy([
       { column: 'sum_votes', order: 'desc' },
       { column: 'total_votes_cast', order: 'desc' },
