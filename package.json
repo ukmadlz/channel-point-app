@@ -6,6 +6,10 @@
     "start": "next start"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.1.2",
+    "@fortawesome/free-regular-svg-icons": "^6.1.2",
+    "@fortawesome/free-solid-svg-icons": "^6.1.2",
+    "@fortawesome/react-fontawesome": "^0.2.0",
     "@supabase/supabase-js": "^1.35.4",
     "@supabase/ui": "^0.36.5",
     "cloudinary": "^1.30.1",

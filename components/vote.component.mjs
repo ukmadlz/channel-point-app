@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Auth, IconChevronUp, IconChevronDown } from '@supabase/ui'
+import { Auth } from '@supabase/ui'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCircleArrowUp, faCircleArrowDown } from '@fortawesome/free-solid-svg-icons'
 
 const fetcher = async (url, method, token, body) =>{
   console.log({ token })
@@ -28,7 +30,9 @@ export default function VoteComponent ({ id }) {
   }
   const selectedStyle = (voteType, currentVote) => {
     return {
-      color: (currentVote == voteType) ? 'green' : 'red'
+      color: (currentVote == voteType) ? 'green' : 'red',
+      margin: "0.5em",
+      fontSize: "2.5em",
     }
   }
   return(<div>
@@ -36,11 +40,13 @@ export default function VoteComponent ({ id }) {
       onClick={() => {changeVote(id, 'up')}}
       style={selectedStyle('up', currentVote)}
     >
-        <IconChevronUp />
+      <FontAwesomeIcon icon={faCircleArrowUp} />
     </a>
     <a
       onClick={() => {changeVote(id, 'down')}}
       style={selectedStyle('down', currentVote)}
-    ><IconChevronDown/></a>
+      >
+      <FontAwesomeIcon icon={faCircleArrowDown} />
+    </a>
   </div>)
 }
