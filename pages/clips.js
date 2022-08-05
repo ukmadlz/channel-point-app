@@ -15,7 +15,7 @@ export default function Profile({ clips }) {
           <Card
             key={clip.id + '-selector'}
             hoverable
-            title={clip.title}
+            title={clip.title + ' by ' + clip.creator_name}
             cover={[
               <TwitchPreviewComponent id={clip.id} thumbnail_url={clip.thumbnail_url} />,
             ]}
