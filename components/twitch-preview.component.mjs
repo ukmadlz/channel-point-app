@@ -10,7 +10,7 @@ export default function TwitchPreviewComponent ({ id, thumbnail_url }) {
     src={thumbnail_url}
   />);
   const iframe = (<iframe
-      src={`https://clips.twitch.tv/embed?clip=${id}&parent=localhost`}
+      src={`https://clips.twitch.tv/embed?clip=${id}&parent=${(process.env.NODE_ENV == 'development') ? 'localhost' : 'troll-selecta.elsmore.me'}`}
       frameBorder="0"
       allowFullScreen={true}
       scrolling="no"
