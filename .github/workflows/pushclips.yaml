@@ -1,6 +1,8 @@
 name: Upload clips from Troll Selecta to Redemptions on Twitch
 on:
   push:
+    branches:
+      - main
   schedule:
     - cron: "*/10 * * * *"
 jobs:
