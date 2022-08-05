@@ -1,0 +1,12 @@
+name: Upload clips from Troll Selecta to Redemptions on Twitch
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+jobs:
+  curl:
+    runs-on: ubuntu-latest
+    steps:
+    - name: curl
+      uses: wei/curl@master
+      with:
+        args: https://troll-selecta.elsmore.me/.netlify/functions/push-clips-to-twitchbackground

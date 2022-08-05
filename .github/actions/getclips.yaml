@@ -1,0 +1,12 @@
+name: Get Clips from Twitch
+on:
+  schedule:
+    - cron: "0 * * * *"
+jobs:
+  curl:
+    runs-on: ubuntu-latest
+    steps:
+    - name: curl
+      uses: wei/curl@master
+      with:
+        args: https://troll-selecta.elsmore.me/.netlify/functions/push-clips-to-twitchbackground
