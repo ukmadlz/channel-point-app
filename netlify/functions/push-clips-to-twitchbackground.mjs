@@ -69,6 +69,6 @@ export async function handler (event) {
       })
     });
     console.log('Add ', clipTitle)
-    await tau.CreateChannelPointRedemption(clipTitle, clipId, 2000);
+    await tau.CreateChannelPointRedemption(clipTitle, clipId, 500);
   });
 }
