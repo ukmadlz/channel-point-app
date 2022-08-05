@@ -54,7 +54,7 @@ export async function handler (event) {
       { column: 'view_count', order: 'desc' }
     ])
     .limit(20)
-  clips.forEach(async (clip) => {
+  await Promise.all(await clips.map(async (clip) => {
     const clipId = `${clip.id} by ${clip.creator_name}`;
     const clipTitle = `${clip.title} by ${clip.creator_name}`;
     const clipUrl = String(clip.thumbnail_url).split('-preview')[0] + '.mp4'
@@ -70,7 +70,7 @@ export async function handler (event) {
     });
     console.log('Add ', clipTitle)
     await tau.CreateChannelPointRedemption(clipTitle, clipId, 500);
-  });
+  }));
   return {
     statusCode: 200,
     body: JSON.stringify({ message: "Pushed to Twitch" }),
