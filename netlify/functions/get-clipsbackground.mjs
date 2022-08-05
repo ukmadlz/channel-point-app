@@ -51,4 +51,8 @@ export async function handler (event) {
       console.error(error)
     }
   })
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ message: "Get from Twitch" }),
+  };
 };

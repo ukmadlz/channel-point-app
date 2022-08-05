@@ -71,4 +71,8 @@ export async function handler (event) {
     console.log('Add ', clipTitle)
     await tau.CreateChannelPointRedemption(clipTitle, clipId, 500);
   });
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ message: "Pushed to Twitch" }),
+  };
 }
