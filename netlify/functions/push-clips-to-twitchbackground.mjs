@@ -5,7 +5,6 @@ DotEnv.config({
 });
 
 import { v2 as Cloudinary } from 'cloudinary';
-import { supabase } from '../../lib/initSupabase';
 import { knex } from '../../lib/initKnex';
 import { Tau } from '../../lib/tau';
 
@@ -20,13 +19,13 @@ export async function handler (event) {
     secure: true
   });
   const redemptions = await tau.ListChannelPointRedemptions();
-  await Promise.all(await redemptions.data.map(async(redemption) => {
-    const clipId = redemption.prompt.split(' by ')[0];
-    const { data } = await tau.getClip(clipId);
-    if (data) {
-        await tau.DeleteChannelPointRedemption(redemption.id);
-    }
-  }));
+  // await Promise.all(await redemptions.data.map(async(redemption) => {
+  //   const clipId = redemption.prompt.split(' by ')[0];
+  //   const { data } = await tau.getClip(clipId);
+  //   if (data) {
+  //       await tau.DeleteChannelPointRedemption(redemption.id);
+  //   }
+  // }));
   // Votes Up
   const votesUpQuery = knex.select('clip_id', knex.raw('count(*) as ??', ['vote_up']))
     .from('votes')
@@ -55,21 +54,30 @@ export async function handler (event) {
     ])
     .limit(20)
   await Promise.all(await clips.map(async (clip) => {
-    const clipId = `${clip.id} by ${clip.creator_name}`;
-    const clipTitle = `${clip.title} by ${clip.creator_name}`;
-    const clipUrl = String(clip.thumbnail_url).split('-preview')[0] + '.mp4'
-    await new Promise((resolve, reject) => {
-      Cloudinary.uploader.upload(clipUrl, {
-        public_id: clip.id,
-        folder: 'twitch-overlay/clips',
-        resource_type: 'video',
-      }, (error, result) => {
-        if(error) reject(error);
-        else resolve(result);
-      })
-    });
-    console.log('Add ', clipTitle)
-    await tau.CreateChannelPointRedemption(clipTitle, clipId, 500);
+    if (!redemptions.data.find(redemption => redemption.prompt.split(' by ')[0] === clip.id)) {
+      const clipId = `${clip.id} by ${clip.creator_name}`;
+      const clipTitle = `${clip.title} by ${clip.creator_name}`.trim().substring(0, 45);
+      const clipUrl = String(clip.thumbnail_url).split('-preview')[0] + '.mp4'
+      await new Promise((resolve, reject) => {
+        Cloudinary.uploader.upload(clipUrl, {
+          public_id: clip.id,
+          folder: 'twitch-overlay/clips',
+          resource_type: 'video',
+        }, (error, result) => {
+          if(error) reject(error);
+          else resolve(result);
+        })
+      });
+      try {
+        const data = await tau.CreateChannelPointRedemption(clipTitle, clipId, 500);
+        console.log('Added ', clipTitle)
+      } catch(error) {
+        console.error("Error adding clip ", clipTitle)
+        console.error(error)
+      }
+    } else {
+      console.log('Exists ', clip.title)
+    }
   }));
   return {
     statusCode: 200,
