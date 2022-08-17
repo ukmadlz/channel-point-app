@@ -18,14 +18,7 @@ export async function handler (event) {
     api_secret: process.env.CLOUDINARY_API_SECRET, 
     secure: true
   });
-  const redemptions = await tau.ListChannelPointRedemptions();
-  // await Promise.all(await redemptions.data.map(async(redemption) => {
-  //   const clipId = redemption.prompt.split(' by ')[0];
-  //   const { data } = await tau.getClip(clipId);
-  //   if (data) {
-  //       await tau.DeleteChannelPointRedemption(redemption.id);
-  //   }
-  // }));
+  let redemptions = await tau.ListChannelPointRedemptions();
   // Votes Up
   const votesUpQuery = knex.select('clip_id', knex.raw('count(*) as ??', ['vote_up']))
     .from('votes')
@@ -69,7 +62,7 @@ export async function handler (event) {
         })
       });
       try {
-        const data = await tau.CreateChannelPointRedemption(clipTitle, clipId, 500);
+        await tau.CreateChannelPointRedemption(clipTitle, clipId, 500);
         console.log('Added ', clipTitle)
       } catch(error) {
         console.error("Error adding clip ", clipTitle)
@@ -78,6 +71,20 @@ export async function handler (event) {
     } else {
       console.log('Exists ', clip.title)
     }
+  }));
+  // Remove unused clips
+  redemptions = await tau.ListChannelPointRedemptions();
+        // await tau.DeleteChannelPointRedemption(redemption.id);
+  await Promise.all(redemptions.data.map(async(redemption) => {
+    const clipId = redemption.prompt.split(' by ')[0];
+    const { data } = await tau.getClip(clipId);
+    if (data) {
+      if(!clips.find(clip=>clip.id===clipId)) {
+        await tau.DeleteChannelPointRedemption(redemption.id);
+        console.log('Removed ', redemption.title)
+      }
+    }
+    return false;
   }));
   return {
     statusCode: 200,
