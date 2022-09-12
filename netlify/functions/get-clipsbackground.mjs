@@ -58,15 +58,6 @@ export async function handler (event) {
     if(error) {
       console.error(error)
     }
-    const clipUrl = String(clip.thumbnail_url).split('-preview')[0] + '.mp4'
-    await new Promise((resolve, reject) => Cloudinary.uploader.upload(clipUrl, {
-      public_id: clip.id,
-      folder: 'twitch-overlay/clips',
-      resource_type: 'video',
-    }, (error, result) => {
-      if(error) resolve(error);
-      else reject(result);
-    }))
   })
   return {
     statusCode: 200,
